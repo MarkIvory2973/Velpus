@@ -1,6 +1,7 @@
 import asyncio
 import struct
 import uuid
+import tdmsc
 import const
 
 class VelpusProxy:
@@ -27,6 +28,10 @@ class VelpusProxy:
             # Connection closed
             if not data:
                 break
+            # Decrypt
+            if UUID:
+                table = tdmsc.generate_table(self.users[UUID], 10)
+                data = tdmsc.decrypt(data, table)
             # VELPUS_AUTH: |-CMD-|-UUID-|-MSG-|
             if data[0] == const.CMD.VELPUS_AUTH:
                 try:
@@ -45,6 +50,8 @@ class VelpusProxy:
                 if not UUID in self.users:
                     # Invalid UUID
                     await self._SendMsg(client_writer, const.MSG.VELPUS_INVALID_UUID)
+                    # Reset UUID
+                    UUID = None
                     continue
             # VELPUS_CONNECT: |-CMD-|-INTYPE-|-IP-|-PORT-|
             elif data[0] == const.CMD.VELPUS_CONNECT and UUID:
@@ -135,6 +142,10 @@ class VelpusProxy:
                     
                 connections[server][1].close()
                 connections.pop(server)
+            elif not UUID:
+                # Unauthorized
+                await self._SendMsg(client_writer, const.MSG.VELPUS_UNAUTHORIZED)
+                continue
             else:
                 # Unknown command
                 await self._SendMsg(client_writer, const.MSG.VELPUS_UNKNOWN_CMD)
@@ -145,12 +156,15 @@ class VelpusProxy:
                 await self._SendMsg(client_writer, const.MSG.VELPUS_SUCCEED)
         
     async def _SendMsg(self, client_writer, msg):
+        # Pack
         msg = struct.pack("! B B", const.CMD.VELPUS_MSG, msg)
+        # Send
         client_writer.write(msg)
         await client_writer.drain()
 
+# Users
 users = {
-    uuid.UUID("44a908c6-c0fa-4b73-bf04-174cb92c3f6c"): "2uA3F39njf$"
+    uuid.UUID("44a908c6-c0fa-4b73-bf04-174cb92c3f6c"): 39871510
 }
 
 vproxy = VelpusProxy(("127.0.0.1", 8080), users)

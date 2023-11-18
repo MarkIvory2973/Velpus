@@ -5,7 +5,7 @@ server.bind(("127.0.0.1", 80))
 
 server.listen(50)
 while True:
-    print(f"[*] Listening {socket.gethostname()}:80")
+    print(f"[*] Listening 127.0.0.1:80")
     client, addr = server.accept()
     print(f"[{addr[1]}] Connected")
     
