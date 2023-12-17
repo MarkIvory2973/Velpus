@@ -30,7 +30,7 @@ class VelpusProxy:
             if UUID:
                 table = tdmsc.generate_table(self.users[UUID], 10)
                 data = tdmsc.decrypt(data, table)
-            # VELPUS_AUTH: |-CMD-|-UUID-|-MSG-|
+            # VELPUS_AUTH: |-CMD-|-UUID-|
             if data[0] == const.CMD.VELPUS_AUTH:
                 try:
                     # Unpack
@@ -151,7 +151,7 @@ class VelpusProxy:
 
 # Users
 users = {
-    uuid.UUID("44a908c6-c0fa-4b73-bf04-174cb92c3f6c"): 39871510
+    uuid.UUID("44a908c6-c0fa-4b73-bf04-174cb92c3f6c"): 29183829
 }
 
 vproxy = VelpusProxy(("127.0.0.1", 8080), users)

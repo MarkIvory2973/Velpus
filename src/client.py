@@ -68,9 +68,9 @@ class VelpusClient:
             data = tdmsc.encrypt(data, table)
         return self.client.send(data)
     
-vclient = VelpusClient(("127.0.0.1", 8080), uuid.UUID("44a908c6-c0fa-4b73-bf04-174cb92c3f6c"), 39871510)
+vclient = VelpusClient(("127.0.0.1", 8080), uuid.UUID("44a908c6-c0fa-4b73-bf04-174cb92c3f6c"), 29183829)
 print(vclient.Auth())
-print(vclient.Connect(5, ("127.0.0.1", 80), const.TYPE.VELPUS_IPV4, 0.1))
+print(vclient.Connect(5, ("127.0.0.1", 80), const.TYPE.VELPUS_IPV4, 0.5))
 print(vclient.Send(5, b"GET"))
 print(vclient.Recv(5, 4096))
 print(vclient.Send(5, b"CLOSE"))
