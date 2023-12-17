@@ -5,50 +5,43 @@ import tdmsc
 import const
 
 class VelpusClient:
-    def __init__(self, proxy, uuid, pri_key, msgsetting):
+    def __init__(self, proxy, uuid, pri_key):
         self.client = socket.socket()
         self.proxy = proxy
         self.uuid = uuid
         self.pri_key = pri_key
-        self.msgsetting = msgsetting
         
     def Auth(self):
         self.client.connect(self.proxy)
         
-        self._SendStruct("! B 16s B", const.CMD.VELPUS_AUTH, self.uuid.bytes, self.msgsetting)
+        self._SendStruct("! B 16s", const.CMD.VELPUS_AUTH, self.uuid.bytes)
         
         msg = self.client.recv(2)
         msg = struct.unpack("! B B", msg)[1]
         
         return msg
     
-    def Connect(self, server, intype, timeout):
+    def Connect(self, cid, server, intype, timeout):
         if intype == const.TYPE.VELPUS_IPV4:
             host = bytes(map(int, server[0].split(".")))
         
-        self._SendStruct("! B B 4s H f", const.CMD.VELPUS_CONNECT, intype, host, server[1], timeout, encrypt=True)
+        self._SendStruct("! B B H 4s H f", const.CMD.VELPUS_CONNECT, intype, cid, host, server[1], timeout, encrypt=True)
         
         msg = self.client.recv(2)
         msg = struct.unpack("! B B", msg)[1]
         
         return msg
     
-    def Send(self, server, intype, data):
-        if intype == const.TYPE.VELPUS_IPV4:
-            host = bytes(map(int, server[0].split(".")))
-            
-        self._SendStruct(f"! B B 4s H Q {len(data)}s", const.CMD.VELPUS_SEND, intype, host, server[1], len(data), data, encrypt=True)
+    def Send(self, cid, data):
+        self._SendStruct(f"! B H Q {len(data)}s", const.CMD.VELPUS_SEND, cid, len(data), data, encrypt=True)
         
         msg = self.client.recv(2)
         msg = struct.unpack("! B B", msg)[1]
         
         return msg
         
-    def Recv(self, server, intype, bufsize):
-        if intype == const.TYPE.VELPUS_IPV4:
-            host = bytes(map(int, server[0].split(".")))
-            
-        self._SendStruct("! B B 4s H Q", const.CMD.VELPUS_RECV, intype, host, server[1], bufsize, encrypt=True)
+    def Recv(self, cid, bufsize):
+        self._SendStruct("! B H Q", const.CMD.VELPUS_RECV, cid, bufsize, encrypt=True)
         
         msg = self.client.recv(2)
         msg = struct.unpack("! B B", msg)[1]
@@ -60,11 +53,8 @@ class VelpusClient:
         
         return msg, data
     
-    def Disconnect(self, server, intype):
-        if intype == const.TYPE.VELPUS_IPV4:
-            host = bytes(map(int, server[0].split(".")))
-            
-        self._SendStruct("! B B 4s H", const.CMD.VELPUS_CONNECT, intype, host, server[1], encrypt=True)
+    def Disconnect(self, cid):
+        self._SendStruct("! B H", const.CMD.VELPUS_CONNECT, cid, encrypt=True)
         
         msg = self.client.recv(2)
         msg = struct.unpack("! B B", msg)[1]
@@ -78,10 +68,10 @@ class VelpusClient:
             data = tdmsc.encrypt(data, table)
         return self.client.send(data)
     
-vclient = VelpusClient(("127.0.0.1", 8080), uuid.UUID("44a908c6-c0fa-4b73-bf04-174cb92c3f6c"), 39871510, const.TYPE.VELPUS_ALLMSG)
+vclient = VelpusClient(("127.0.0.1", 8080), uuid.UUID("44a908c6-c0fa-4b73-bf04-174cb92c3f6c"), 39871510)
 print(vclient.Auth())
-print(vclient.Connect(("127.0.0.1", 80), const.TYPE.VELPUS_IPV4, 0.1))
-print(vclient.Send(("127.0.0.1", 80), const.TYPE.VELPUS_IPV4, b"GET"))
-print(vclient.Recv(("127.0.0.1", 80), const.TYPE.VELPUS_IPV4, 4096))
-print(vclient.Send(("127.0.0.1", 80), const.TYPE.VELPUS_IPV4, b"CLOSE"))
+print(vclient.Connect(5, ("127.0.0.1", 80), const.TYPE.VELPUS_IPV4, 0.1))
+print(vclient.Send(5, b"GET"))
+print(vclient.Recv(5, 4096))
+print(vclient.Send(5, b"CLOSE"))
 vclient.client.close()

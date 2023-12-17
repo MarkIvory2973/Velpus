@@ -8,8 +8,6 @@ class CMD:
 
 class TYPE:
     VELPUS_IPV4 = 1
-    VELPUS_ALLMSG = 2
-    VELPUS_ERRMSGONLY = 3
 
 class MSG:
     VELPUS_SUCCEED = 1
